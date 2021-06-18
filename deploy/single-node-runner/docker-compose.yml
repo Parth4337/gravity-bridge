@@ -7,10 +7,13 @@ services:
       context: ./
       dockerfile: ./Dockerfile
     ports:
+      # gravity
       - 26656:26656
       - 26657:26657
       - 1317:1317
       - 61278:61278
+      # ethereum
+      - 8545:8545
     volumes:
       # TODO move to docker
       - ./assets:/root/home/assets

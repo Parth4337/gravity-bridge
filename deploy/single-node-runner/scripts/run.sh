@@ -100,4 +100,31 @@ echo "Setting peers"
 # TODO check if we need it
 #peer0="$($gravity $home0 tendermint show-node-id)@$n0name:26656"
 
-$gravity $home0 start
+$gravity $home0 start --pruning=nothing > $CURRENT_WORKING_DIR/gravity.$n0name.log &>/dev/null
+
+# TODO listen log
+#cat $CURRENT_WORKING_DIR/gravity.$n0name.log
+
+#-------------------- Ethereum --------------------
+
+geth --identity "GravityTestnet" \
+    --nodiscover \
+    --networkid 15 init assets/ETHGenesis.json
+
+geth --identity "GravityTestnet" --nodiscover \
+                               --networkid 15 \
+                               --mine \
+                               --http \
+                               --http.port "8545" \
+                               --http.addr "0.0.0.0" \
+                               --http.corsdomain "*" \
+                               --http.vhosts "*" \
+                               --miner.threads=1 \
+                               --nousb \
+                               --verbosity=5 \
+                               --miner.etherbase=0xBf660843528035a5A4921534E156a27e64B231fE \
+                               > $CURRENT_WORKING_DIR/ethereum.$n0name.log &>/dev/null
+# TODO listen log
+#cat $CURRENT_WORKING_DIR/ethereum.$n0name.log
+
+
