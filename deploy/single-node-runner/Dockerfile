@@ -62,3 +62,10 @@ RUN npm run typechain
 # ------------------ ethereum go (geth) ------------------
 RUN add-apt-repository -y ppa:ethereum/ethereum
 RUN apt-get install --no-install-recommends -yq ethereum
+
+# ------------------ soft to run the scripts ------------------
+RUN apt-get install --no-install-recommends -yq jq \
+                                                moreutils
+
+# go to root home
+WORKDIR /root/home

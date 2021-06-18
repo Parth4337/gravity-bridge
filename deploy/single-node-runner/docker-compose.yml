@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  # TODO rename service
+  gravity0:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    ports:
+      - 26656:26656
+      - 26657:26657
+      - 1317:1317
+      - 61278:61278
+    volumes:
+      # TODO move to docker
+      - ./assets:/root/home/assets
+      #  volume for test script
+      - ./scripts:/root/home/scripts
+    command: /bin/sh /root/home/scripts/run.sh
