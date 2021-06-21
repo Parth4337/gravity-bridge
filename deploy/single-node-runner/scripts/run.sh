@@ -48,12 +48,7 @@ n0orchKey="$(jq .address $n0dir/orchestrator_key.json)"
 jq ".app_state.auth.accounts += [{\"@type\": \"/cosmos.auth.v1beta1.BaseAccount\",\"address\": $n0orchKey,\"pub_key\": null,\"account_number\": \"0\",\"sequence\": \"0\"}]" $n0cfgDir/genesis.json | sponge $n0cfgDir/genesis.json
 jq ".app_state.bank.balances += [{\"address\": $n0orchKey,\"coins\": [{\"denom\": \"samoleans\",\"amount\": \"100000000000\"},{\"denom\": \"stake\",\"amount\": \"100000000000\"}]}]" $n0cfgDir/genesis.json | sponge $n0cfgDir/genesis.json
 
-# TODO check if we need it
-#echo "Copying genesis file around to sign"
-#cp $n0cfgDir/genesis.json $n1cfgDir/genesis.json
-
 echo "Generating ethereum keys"
-# TODO set eth_key as variable
 $gravity $home0 eth_keys add --output=json --dry-run=true | jq . >> $n0dir/eth_key.json
 
 echo "Copying ethereum genesis file"
@@ -62,21 +57,11 @@ cp assets/ETHGenesis.json $home_dir
 echo "Adding initial ethereum value"
 jq ".alloc |= . + {$(jq .address $n0dir/eth_key.json) : {\"balance\": \"0x1337000000000000000000\"}}" $home_dir/ETHGenesis.json | sponge $home_dir/ETHGenesis.json
 
-cat $home_dir/ETHGenesis.json
-
 echo "Creating gentxs"
 $gravity $home0 gentx --ip $n0name val 100000000000stake $(jq -r .address $n0dir/eth_key.json) $(jq -r .address $n0dir/orchestrator_key.json) $kbt $cid
 
 echo "Collecting gentxs in $n0name"
-# TODO check if we need it
-#echo "Collecting gentxs in $n0name"
-#cp $n1cfgDir/gentx/*.json $n0cfgDir/gentx/
 $gravity $home0 collect-gentxs
-
-# TODO check if we need it
-#echo "Distributing genesis file into $n1name, $n2name, $n3name"
-#cp $n0cfgDir/genesis.json $n1cfgDir/genesis.json
-
 
 echo "Exposing ports and APIs of the $n0name"
 # Switch sed command in the case of linux
@@ -96,14 +81,7 @@ fsed 's#external_address = ""#external_address = "tcp://'$n0name:26656'"#g' $n0c
 fsed 's#enable = false#enable = true#g' $n0appCfg
 fsed 's#swagger = false#swagger = true#g' $n0appCfg
 
-echo "Setting peers"
-# TODO check if we need it
-#peer0="$($gravity $home0 tendermint show-node-id)@$n0name:26656"
-
 $gravity $home0 start --pruning=nothing > $CURRENT_WORKING_DIR/gravity.$n0name.log &>/dev/null
-
-# TODO listen log
-#cat $CURRENT_WORKING_DIR/gravity.$n0name.log
 
 #-------------------- Ethereum --------------------
 
@@ -124,7 +102,61 @@ geth --identity "GravityTestnet" --nodiscover \
                                --verbosity=5 \
                                --miner.etherbase=0xBf660843528035a5A4921534E156a27e64B231fE \
                                > $CURRENT_WORKING_DIR/ethereum.$n0name.log &>/dev/null
-# TODO listen log
-#cat $CURRENT_WORKING_DIR/ethereum.$n0name.log
 
+#-------------------- Ethereum / Applying contracts --------------------
 
+echo "Waiting for nodes"
+sleep 10
+
+echo "Applying contracts"
+
+GRAVITY_DIR=/go/src/github.com/onomyprotocol/gravity-bridge/
+cd $GRAVITY_DIR/solidity
+
+contractAddress=$(npx ts-node \
+                      contract-deployer.ts \
+                      --cosmos-node="http://$n0name:26657" \
+                      --eth-node="http://0.0.0.0:8545" \
+                      --eth-privkey="0xb1bab011e03a9862664706fc3bbaa1b16651528e5f0e7fbfcbfdd8be302a13e7" \
+                      --contract=artifacts/contracts/Gravity.sol/Gravity.json \
+                      --test-mode=true | grep "Gravity deployed at Address" | grep -Eow '0x[0-9a-fA-F]{40}')
+
+echo "Contract address: $contractAddress"
+
+# return back to home
+cd $CURRENT_WORKING_DIR
+
+#-------------------- ORCHESTRATOR --------------------
+
+echo "Gathering keys for orchestrators"
+VALIDATOR=$n0name
+COSMOS_GRPC="http://$n0name:9090/"
+COSMOS_RPC="http://$n0name:1317"
+COSMOS_KEY=$(jq .priv_key.value $n0cfgDir/priv_validator_key.json)
+COSMOS_PHRASE=$(jq .mnemonic $n0dir/orchestrator_key.json)
+DENOM=stake
+ETH_RPC=http://0.0.0.0:8545
+ETH_PRIVATE_KEY=$(jq .private_key $n0dir/eth_key.json)
+CONTRACT_ADDR=$contractAddress
+
+rpc="http://0.0.0.0:1317"
+grpc="http://0.0.0.0:9090"
+ethrpc="http://0.0.0.0:8545"
+
+echo orchestrator --cosmos-phrase="${COSMOS_PHRASE}" \
+             --ethereum-key="${ETH_PRIVATE_KEY}" \
+             --cosmos-grpc="$grpc" \
+             --ethereum-rpc="$ethrpc" \
+             --fees="${DENOM}" \
+             --contract-address="${CONTRACT_ADDR}"\
+             --address-prefix=cosmos
+
+orchestrator --cosmos-phrase="${COSMOS_PHRASE}" \
+             --ethereum-key="${ETH_PRIVATE_KEY}" \
+             --cosmos-grpc="$grpc" \
+             --ethereum-rpc="$ethrpc" \
+             --fees="${DENOM}" \
+             --contract-address="${CONTRACT_ADDR}"\
+             --address-prefix=cosmos
+
+echo "done"

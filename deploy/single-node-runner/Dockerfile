@@ -69,3 +69,7 @@ RUN apt-get install --no-install-recommends -yq jq \
 
 # go to root home
 WORKDIR /root/home
+COPY assets assets
+COPY scripts scripts
+
+CMD sh scripts/run.sh

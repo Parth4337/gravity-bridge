@@ -1,7 +1,6 @@
 version: '3'
 
 services:
-  # TODO rename service
   gravity0:
     build:
       context: ./
@@ -14,9 +13,3 @@ services:
       - 61278:61278
       # ethereum
       - 8545:8545
-    volumes:
-      # TODO move to docker
-      - ./assets:/root/home/assets
-      #  volume for test script
-      - ./scripts:/root/home/scripts
-    command: /bin/sh /root/home/scripts/run.sh
