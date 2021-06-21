@@ -3,7 +3,7 @@ set -eu
 
 echo "bootstrapping environment"
 
-# Constants
+# Initial dir
 CURRENT_WORKING_DIR=$(pwd)
 # Name of the network to bootstrap
 CHAINID="testchain"
@@ -11,24 +11,25 @@ CHAINID="testchain"
 GRAVITY=gravity
 # The name of the gravity node
 GRAVITY_NODE_NAME="gravity"
-# The address to run gravity note
+# The address to run gravity node
 GRAVITY_HOST="0.0.0.0"
 # Home folder for gravity config
 GRAVITY_HOME="$CURRENT_WORKING_DIR/$CHAINID/$GRAVITY_NODE_NAME"
-# Home flag for folder
+# Home flag for home folder
 GRAVITY_HOME_FLAG="--home $GRAVITY_HOME"
 # Config directories for gravity node
 GRAVITY_HOME_CONFIG="$GRAVITY_HOME/config"
-# Config files for gravity node
+# Config file for gravity node
 GRAVITY_NODE_CONFIG="$GRAVITY_HOME_CONFIG/config.toml"
-# App config files for gravity node
+# App config file for gravity node
 GRAVITY_APP_CONFIG="$GRAVITY_HOME_CONFIG/app.toml"
-# Common flags
+# Keyring flag
 GRAVITY_KEYRING_FLAG="--keyring-backend test"
+# Chain ID flag
 GRAVITY_CHAINID_FLAG="--chain-id $CHAINID"
 # Prefix of cosmos addresses
 GRAVITY_ADDRESS_PREFIX=cosmos
-# gravity chain demons
+# Gravity chain demons
 STAKE_DENOM="stake"
 NORMAL_DENOM="samoleans"
 
@@ -76,14 +77,14 @@ $GRAVITY $GRAVITY_HOME_FLAG collect-gentxs
 echo "Exposing ports and APIs of the $GRAVITY_NODE_NAME"
 # Switch sed command in the case of linux
 fsed() {
-  if [ ""`uname` = 'Linux' ]; then
+  if [ `uname` = 'Linux' ]; then
     sed -i "$@"
   else
     sed -i '' "$@"
   fi
 }
 
-# Change ports on n0 val
+# Change ports
 fsed "s#\"tcp://127.0.0.1:26656\"#\"tcp://$GRAVITY_HOST:26656\"#g" $GRAVITY_NODE_CONFIG
 fsed "s#\"tcp://127.0.0.1:26657\"#\"tcp://$GRAVITY_HOST:26657\"#g" $GRAVITY_NODE_CONFIG
 fsed 's#addr_book_strict = true#addr_book_strict = false#g' $GRAVITY_NODE_CONFIG
