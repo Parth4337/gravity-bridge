@@ -150,11 +150,11 @@ cd $CURRENT_WORKING_DIR
 
 #-------------------- ORCHESTRATOR --------------------
 
-echo "Gathering keys for orchestrators"
+echo "Gathering keys for orchestrator"
 COSMOS_GRPC="http://$GRAVITY_HOST:9090/"
-COSMOS_PHRASE=$(jq .mnemonic $GRAVITY_HOME/orchestrator_key.json)
+COSMOS_PHRASE=$(jq -r .mnemonic $GRAVITY_HOME/orchestrator_key.json)
 ETH_RPC=http://$ETH_HOST:8545
-ETH_PRIVATE_KEY=$(jq .private_key $GRAVITY_HOME/eth_key.json)
+ETH_PRIVATE_KEY=$(jq -r .private_key $GRAVITY_HOME/eth_key.json)
 
 echo orchestrator --cosmos-phrase="$COSMOS_PHRASE" \
              --ethereum-key="$ETH_PRIVATE_KEY" \
