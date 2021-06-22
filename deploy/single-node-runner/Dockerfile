@@ -40,9 +40,11 @@ RUN cargo version
 
 # build orchestrator artifact
 WORKDIR $GRAVITY_DIR/orchestrator
-RUN cargo build --release --bin orchestrator
+RUN rustup target add x86_64-unknown-linux-musl
+RUN apt-get install --no-install-recommends -yq musl-tools
+RUN cargo build --target=x86_64-unknown-linux-musl --release  --all
 # copy binary to bin
-RUN cp $GRAVITY_DIR/orchestrator/target/release/orchestrator /usr/bin/orchestrator
+RUN cp $GRAVITY_DIR/orchestrator/target/x86_64-unknown-linux-musl/release/orchestrator /usr/bin/orchestrator
 
 # ------------------ contract-deployer ------------------
 
