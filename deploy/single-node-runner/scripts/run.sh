@@ -155,15 +155,7 @@ COSMOS_GRPC="http://$GRAVITY_HOST:9090/"
 COSMOS_PHRASE=$(jq -r .mnemonic $GRAVITY_HOME/orchestrator_key.json)
 ETH_RPC=http://$ETH_HOST:8545
 ETH_PRIVATE_KEY=$(jq -r .private_key $GRAVITY_HOME/eth_key.json)
-
-echo orchestrator --cosmos-phrase="$COSMOS_PHRASE" \
-             --ethereum-key="$ETH_PRIVATE_KEY" \
-             --cosmos-grpc="$COSMOS_GRPC" \
-             --ethereum-rpc="$ETH_RPC" \
-             --fees="$STAKE_DENOM" \
-             --contract-address="$CONTRACT_ADDRESS"\
-             --address-prefix="$GRAVITY_ADDRESS_PREFIX"
-
+echo "Run orchestrator"
 orchestrator --cosmos-phrase="$COSMOS_PHRASE" \
              --ethereum-key="$ETH_PRIVATE_KEY" \
              --cosmos-grpc="$COSMOS_GRPC" \
@@ -171,5 +163,3 @@ orchestrator --cosmos-phrase="$COSMOS_PHRASE" \
              --fees="$STAKE_DENOM" \
              --contract-address="$CONTRACT_ADDRESS"\
              --address-prefix="$GRAVITY_ADDRESS_PREFIX"
-
-echo "done"
