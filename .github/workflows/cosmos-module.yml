@@ -1,0 +1,28 @@
+name: Cosmos Module
+on: [ push, pull_request ]
+
+jobs:
+  amd64:
+    name: onomy Docker
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: Set up QEMU
+        run: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes --credential yes
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+        with:
+          version: latest
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push blockchain
+        run: docker buildx build --tag parth4337/gravity-bridge-test --file module/Dockerfile --platform linux/amd64 --cache-from parth4337/gravity-bridge-test:cache --cache-to parth4337/gravity-bridge-test:cache --push --progress tty .
